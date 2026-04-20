@@ -1,8 +1,6 @@
 <p align="center">
-    <img src="packages/public/brand/agent-kanban-headline.png" alt="Agent Kanban — Plan · Review · Ship" width="720">
+  <img src="packages/public/brand/agent-kanban-headline.png" alt="Agent Kanban — Plan · Review · Ship" width="720">
 </p>
-
-<p align="center">Get 10X more out of Claude Code, Gemini CLI, Codex, Amp and other coding agents...</p>
 
 ## Overview
 
