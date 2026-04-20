@@ -13,6 +13,7 @@ import { useWorkspaceContext } from '@/shared/hooks/useWorkspaceContext';
 import { useActions } from '@/shared/hooks/useActions';
 import { useAuth } from '@/shared/hooks/auth/useAuth';
 import { useAppNavigation } from '@/shared/hooks/useAppNavigation';
+import { useNavigate } from '@tanstack/react-router';
 import { useIsMobile } from '@/shared/hooks/useIsMobile';
 import { cn } from '@/shared/lib/utils';
 import { useCurrentKanbanRouteState } from '@/shared/hooks/useCurrentKanbanRouteState';
@@ -32,7 +33,7 @@ import {
   bulkUpdateIssues,
   type BulkUpdateIssueItem,
 } from '@/shared/lib/remoteApi';
-import { PlusIcon, DotsThreeIcon } from '@phosphor-icons/react';
+import { PlusIcon, DotsThreeIcon, TrashIcon } from '@phosphor-icons/react';
 import { Actions } from '@/shared/actions';
 import {
   buildKanbanIssueComposerKey,
@@ -66,6 +67,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@vibe/ui/components/Dropdown';
 import { SearchableTagDropdownContainer } from '@/shared/components/SearchableTagDropdownContainer';
@@ -73,6 +75,8 @@ import type { IssuePriority } from 'shared/remote-types';
 import { useIssueMultiSelect } from '@/shared/hooks/useIssueMultiSelect';
 import { useIssueSelectionStore } from '@/shared/stores/useIssueSelectionStore';
 import { BulkActionBarContainer } from './BulkActionBarContainer';
+import { KanbanDisplaySettingsContainer } from './KanbanDisplaySettingsContainer';
+import { ProjectSettingsDialog } from './ProjectSettingsDialog';
 
 const areStringSetsEqual = (left: string[], right: string[]): boolean => {
   if (left.length !== right.length) {
@@ -126,6 +130,7 @@ export function KanbanContainer() {
   const isMobile = useIsMobile();
   const { t } = useTranslation('common');
   const appNavigation = useAppNavigation();
+  const navigate = useNavigate();
   const routeState = useCurrentKanbanRouteState();
 
   // Get data from contexts (set up by WorkspacesLayout)
@@ -147,19 +152,25 @@ export function KanbanContainer() {
     removeIssueTag,
     insertTag,
     pullRequests,
+    insertStatus,
+    updateStatus,
+    removeStatus,
     isLoading: projectLoading,
   } = useProjectContext();
 
   const {
     projects,
     membersWithProfilesById,
+    removeProject,
     isLoading: orgLoading,
   } = useOrgContext();
   const { activeWorkspaces } = useWorkspaceContext();
   const { userId } = useAuth();
 
-  // Get project name by finding the project matching current projectId
-  const projectName = projects.find((p) => p.id === projectId)?.name ?? '';
+  // Get project name/color by finding the project matching current projectId
+  const currentProject = projects.find((p) => p.id === projectId);
+  const projectName = currentProject?.name ?? '';
+  const projectColor = currentProject?.color ?? '';
 
   const selectedKanbanIssueId = routeState.issueId;
   const issueComposerKey = useMemo(
@@ -205,6 +216,17 @@ export function KanbanContainer() {
   const openProjectsGuide = useCallback(() => {
     executeAction(Actions.ProjectsGuide);
   }, [executeAction]);
+
+  const handleDeleteProject = useCallback(() => {
+    if (
+      confirm(
+        `Delete "${projectName}"? All issues will be permanently removed.`
+      )
+    ) {
+      removeProject(projectId);
+      void navigate({ to: '/projects' });
+    }
+  }, [projectName, projectId, removeProject, navigate]);
 
   const projectViewSelection = useUiPreferencesStore(
     (s) => s.kanbanProjectViewSelections[projectId]
@@ -479,6 +501,12 @@ export function KanbanContainer() {
   // Track items as arrays of IDs grouped by status
   const [items, setItems] = useState<Record<string, string[]>>({});
   const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState(false);
+
+  const issueCountByStatus = useMemo(
+    () =>
+      Object.fromEntries(Object.entries(items).map(([k, v]) => [k, v.length])),
+    [items]
+  );
 
   // Sync items from filtered issues when they change
   useEffect(() => {
@@ -921,9 +949,23 @@ export function KanbanContainer() {
                 {t('kanban.openProjectsGuide', 'Projects guide')}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => executeAction(Actions.ProjectSettings)}
+                onClick={() =>
+                  void ProjectSettingsDialog.show({
+                    projectId,
+                    projectName,
+                    projectColor,
+                  })
+                }
               >
                 {t('kanban.editProjectSettings', 'Edit project settings')}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                icon={TrashIcon}
+                onClick={handleDeleteProject}
+              >
+                {t('kanban.deleteProject', 'Delete project')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -970,6 +1012,14 @@ export function KanbanContainer() {
             shouldAnimateCreateButton={shouldAnimateCreateButton}
             renderFiltersDialog={(props) => <KanbanFiltersDialog {...props} />}
             isMobile={isMobile}
+          />
+          <KanbanDisplaySettingsContainer
+            statuses={statuses}
+            projectId={projectId}
+            issueCountByStatus={issueCountByStatus}
+            onInsertStatus={insertStatus}
+            onUpdateStatus={updateStatus}
+            onRemoveStatus={removeStatus}
           />
         </div>
       </div>

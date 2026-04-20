@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Vibe Kanban",
+  "name": "Agent Kanban",
   "description": "A kanban board for developers to track coding tasks with AI coding agents",
   "appearance": {
     "default": "light"
@@ -28,7 +28,6 @@
           "browser-testing",
           "issue-management",
           "reviewing-code",
-          "remote-access",
           {
             "group": "Supported Coding Agents",
             "expanded": true,
@@ -66,23 +65,6 @@
         ]
       },
       {
-        "group": "Cloud",
-        "pages": [
-          "cloud/index",
-          "cloud/getting-started",
-          "cloud/authentication",
-          "cloud/organizations",
-          "cloud/team-members",
-          "cloud/projects",
-          "cloud/issues",
-          "cloud/kanban-board",
-          "cloud/list-view",
-          "cloud/filtering",
-          "cloud/customisation",
-          "cloud/troubleshooting"
-        ]
-      },
-      {
         "group": "Settings",
         "pages": [
           "settings/index",
@@ -94,8 +76,6 @@
             ]
           },
           "settings/projects-repositories",
-          "settings/organization-settings",
-          "settings/remote-projects",
           "settings/agent-configurations",
           "settings/mcp-servers"
         ]
@@ -104,7 +84,9 @@
         "group": "Self-Hosting",
         "pages": [
           "self-hosting/local-development",
-          "self-hosting/deploy-docker"
+          "self-hosting/daemon-mode",
+          "self-hosting/deploy-docker",
+          "self-hosting/self-hosted-remote-access"
         ]
       },
       {
@@ -127,8 +109,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo.png"
   },
   "navbar": {
     "links": [
@@ -165,10 +147,6 @@
     {
       "source": "/workspaces/preview",
       "destination": "/browser-testing"
-    },
-    {
-      "source": "/remote-control",
-      "destination": "/remote-access"
     }
   ],
   "footer": {
